@@ -138,6 +138,42 @@ public class DatosPersonalesDaoImpl implements DatosPersonalesDao {
 		return Ldatos;
 
 	}
+	
+	@Override
+	public ArrayList<DatosPersonales> Fechas(String desde, String hasta) {
+
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver");
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+
+		ArrayList<DatosPersonales> ldp = new ArrayList<DatosPersonales>();
+
+		Connection cn = null;
+		try {
+			cn = DriverManager.getConnection(url, user, pass);
+			String query = "SELECT * FROM datospersonales where fechanacimiento >= ('" + desde + "') and fechanacimiento <=  ('" + hasta + "')" ;			
+			Statement st = cn.createStatement();
+			ResultSet rs = st.executeQuery(query);
+			while (rs.next()) {
+				DatosPersonales x = new DatosPersonales();
+				x.setDni(rs.getInt("Dni"));
+				x.setApellido(rs.getString("Apellido"));
+				x.setNombre(rs.getString("Nombre"));
+				x.setFechaNacimiento(rs.getDate("FechaNacimiento").toLocalDate());
+				x.setSexo(rs.getString("Sexo"));
+				x.setMail(rs.getString("Mail"));
+			
+				ldp.add(x);
+			}
+			cn.close();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return ldp;
+	}
 
 	@Override
 	public DatosPersonales buscarDNI(int dni) {

@@ -19,4 +19,5 @@ public interface UsuarioDao {
 	Usuario logueo(String pass, String NombreUsuario);
 
 	ArrayList<Usuario> readAll();
+	public Usuario buscarID(int id);
 }

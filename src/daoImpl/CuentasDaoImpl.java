@@ -3,7 +3,6 @@ package daoImpl;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
@@ -11,6 +10,7 @@ import dao.CuentasDao;
 import entidad.Cuentas;
 import entidad.DatosPersonales;
 import entidad.TipoCuentas;
+
 
 public class CuentasDaoImpl implements CuentasDao {
 
@@ -21,6 +21,9 @@ public class CuentasDaoImpl implements CuentasDao {
 	static String pass = "root";
 
 	static String url = String.format("jdbc:mysql://%s:%d/%s?useSSL=false", host, port, db);
+	
+	TiposCuentaDaoImpl TipoCtaImp=new TiposCuentaDaoImpl(); 
+	DatosPersonalesDaoImpl DP=new DatosPersonalesDaoImpl();
 
 	@Override
 	public int insert(Cuentas cuenta) {
@@ -208,7 +211,7 @@ public class CuentasDaoImpl implements CuentasDao {
 		Connection cn = null;
 		try {
 			cn = DriverManager.getConnection(url, user, pass);
-			String query = "SELECT NumeroCuenta, Cbu, FechaCreacion, Saldo, Estado, FK_idTipoCuenta, tc.Descripcion as DescTP, FK_DniCliente FROM cuentas c inner join tipocuenta tc on c.FK_idTipoCuenta = tc.id where FK_DniCliente = "+ DNI;
+			String query = "SELECT numeroCuenta, Cbu, FechaCreacion, Saldo, Estado, FK_idTipoCuenta, tc.Descripcion as DescTP, FK_DniCliente FROM cuentas c inner join tipocuenta tc on c.FK_idTipoCuenta = tc.id where FK_DniCliente = "+ DNI;
 			Statement st = cn.createStatement();
 			ResultSet rs = st.executeQuery(query);
 			while (rs.next()) {
@@ -221,7 +224,7 @@ public class CuentasDaoImpl implements CuentasDao {
 				DatosPersonales dp = new DatosPersonales();
 				dp.setDni(rs.getInt("FK_DniCliente"));
 
-				x.setNumeroCuenta(rs.getInt("NumeroCuenta"));
+				x.setNumeroCuenta(rs.getInt("numeroCuenta"));
 				x.setCbu(rs.getDouble("CBU"));
 				x.setFechaCreacion(rs.getDate("FechaCreacion").toLocalDate());
 				x.setSaldo(rs.getDouble("Saldo"));
@@ -328,6 +331,90 @@ public class CuentasDaoImpl implements CuentasDao {
 			e.printStackTrace();
 		}
 		return lc;
+	}
+	
+	
+	@Override
+	public ArrayList<Cuentas> TC(int tc) {
+
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver");
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+
+		ArrayList<Cuentas> c = new ArrayList<Cuentas>();
+
+		Connection cn = null;
+		try {
+			cn = DriverManager.getConnection(url, user, pass);
+String query ="SELECT C.numeroCuenta,DP.Dni,DP.Apellido,DP.Nombre,TC.Descripcion FROM cuentas as C"
+		+ " inner join datospersonales as DP on C.FK_DniCliente=DP.Dni"
+		+ " inner join tipocuenta as TC on C.FK_idTipoCuenta=TC.id "
+		+ "where C.Estado=1 and  C.FK_idTipoCuenta="+tc;
+			Statement st = cn.createStatement();
+			ResultSet rs = st.executeQuery(query);
+			while (rs.next()) {
+				Cuentas x = new Cuentas();
+			
+				TipoCuentas tp = new TipoCuentas();
+				tp.setDescripcion(rs.getString("Descripcion"));
+				
+				DatosPersonales DP = new DatosPersonales();
+				DP.setDni(rs.getInt("Dni"));
+				DP.setApellido(rs.getString("Apellido"));
+				DP.setNombre(rs.getString("Nombre"));	
+				
+				
+				x.setNumeroCuenta(rs.getInt("numeroCuenta"));
+				x.setTipoCuenta(tp);
+				x.setDniCliente(DP);
+												
+
+				c.add(x);
+			}
+			cn.close();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return c;
+	}
+	
+	@Override
+	public ArrayList<Cuentas> readAll() {
+
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver");
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+
+		ArrayList<Cuentas> Ltp = new ArrayList<Cuentas>();
+
+
+		Connection cn = null;
+		try {
+			cn = DriverManager.getConnection(url, user, pass);
+			String query = "SELECT * FROM cuentas  where Estado=1";
+			Statement st = cn.createStatement();
+			ResultSet rs = st.executeQuery(query);
+			while (rs.next()) {
+				Cuentas x = new Cuentas();
+				x.setNumeroCuenta(rs.getInt("numeroCuenta"));
+				x.setEstado(rs.getBoolean("Estado"));
+				x.setTipoCuenta(TipoCtaImp.buscarId(rs.getInt("FK_idTipoCuenta")));
+				x.setDniCliente(DP.buscarDNI(rs.getInt("FK_DniCliente")));
+				
+				
+				Ltp.add(x);
+			}
+			cn.close();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return Ltp;
 	}
 
 }

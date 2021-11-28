@@ -14,6 +14,7 @@ import dao.RolDao;
 import dao.UsuarioDao;
 import entidad.DatosPersonales;
 import entidad.Rol;
+import entidad.TipoMovimiento;
 import entidad.Usuario;
 
 public class UsuarioDaoImpl implements UsuarioDao {
@@ -272,4 +273,44 @@ public class UsuarioDaoImpl implements UsuarioDao {
 			e.printStackTrace();
 		}
 	}
+
+
+	@Override
+	public Usuario buscarID(int id) {
+
+		Usuario User = new Usuario();
+
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver");
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+
+		Connection cn = null;
+		try {
+			cn = DriverManager.getConnection(url, user, pass);
+
+			Statement st = cn.createStatement();
+
+			ResultSet rs = st.executeQuery("SELECT * FROM usuarios where FK_DniDP =" + id);
+
+			while (rs.next()) {
+				User.setId(id);
+				User.setNombreUsuario(rs.getString("NombreUsuario"));
+			}
+			cn.close();
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+
+		}
+		return User;
+
+	}
+
+
+
+
+
 }

@@ -20,5 +20,8 @@ public interface CuentasDao {
 	public int updateMonto(Double Monto, int dni, int Ncuenta);
 
 	public ArrayList<Cuentas> ListarCuentasCBU(double cbu);
+	
+	public ArrayList<Cuentas> TC(int tc);
+	public ArrayList<Cuentas> readAll();
 
 }
